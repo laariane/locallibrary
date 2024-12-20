@@ -4,7 +4,6 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django.db.models.functions import Lower
 from django.urls import reverse
-from pip._vendor.chardet.metadata.languages import Language
 
 
 # Create your models here.
@@ -48,7 +47,8 @@ class Book(models.Model):
                             help_text='13 Character <a href="https://www.isbn-international.org/content/what-isbn'
                                       '">ISBN number</a>')
     genres = models.ManyToManyField(Genre, help_text="select a genre for this book")
-    languages = models.ManyToManyField("Language", help_text="select a language for this book")
+    language = models.ForeignKey(
+        'Language', on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         """ Returns a string representation of the book"""
@@ -59,7 +59,7 @@ class Book(models.Model):
 
 
 class BookInstance(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False,
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True,
                           help_text="Unique ID for this particular book")
     book = models.ForeignKey('Book', on_delete=models.RESTRICT, null=True)
     imprint = models.CharField(max_length=200)
@@ -92,14 +92,14 @@ class Author(models.Model):
         ordering = ['last_name', 'first_name']
 
     def __str__(self):
-        return f'{self.last_name}) {self.first_name} '
+        return f'{self.last_name} {self.first_name} '
 
     def get_absolute_url(self):
         return reverse('author-detail', args=[str(self.id)])
 
 
 class Language(models.Model):
-    language_name = models.CharField(max_length=50, unique=True)
+    language_name = models.CharField(max_length=50,unique=True)
 
     class Meta:
         constraints = [
